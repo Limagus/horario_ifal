@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horários IFAL Campus Piranhas - Matutino 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ecf1ed 0%, #bbd4bb 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #106429, #11521f);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        select, input {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #1a612f;
+            box-shadow: 0 0 0 3px rgba(9, 102, 17, 0.1);
+        }
+
+        .turma-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .turma-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .turma-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .turma-header {
+            background: linear-gradient(135deg, #0e4712, #4e6b54);
+            color: white;
+            padding: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            position: relative;
+        }
+
+        .turma-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+        }
+
+        .horario-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .horario-table th {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .horario-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .horario-table td:hover {
+            background: #f0f8ff;
+            transform: scale(1.02);
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .horario-slot {
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .materia {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        .professor {
+            font-size: 0.8em;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .time-slot {
+            background: #e3f2fd;
+            font-weight: 600;
+            color: #098319;
+        }
+
+        .search-highlight {
+            background: #fff3cd !important;
+            border: 2px solid #ffc107 !important;
+        }
+
+        @media (max-width: 768px) {
+            .turma-grid {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .horario-table {
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 IFAL - Campus Piranhas</h1>
+            <p>Horários Matutino 2025 | Atualizado em 28/04/2025</p>
+        </div>
+
+        <div class="controls">
+            <div class="filter-container">
+                <select id="turmaFilter">
+                    <option value="">Todas as turmas</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="🔍 Buscar professor ou matéria...">
+                <select id="diaFilter">
+                    <option value="">Todos os dias</option>
+                    <option value="Seg">Segunda-feira</option>
+                    <option value="Ter">Terça-feira</option>
+                    <option value="Qua">Quarta-feira</option>
+                    <option value="Qui">Quinta-feira</option>
+                    <option value="Sex">Sexta-feira</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="turma-grid" id="turmaGrid">
+            <!-- Turmas serão inseridas aqui via JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const horarios = {
+            "1º Agroecologia": {
+                local: "Bloco B - Sala 4",
+                schedule: {
+                    "Seg": ["Int.Agroeco - Fabiano", "FunCS - Michelangelo", "Matemática - MARCOS JOSE", "Geografia - GERARDO", "Matemática - MARCOS JOSE", "Biologia - Victor Cedro"],
+                    "Ter": ["Matemática - MARCOS JOSE", "Sociologia - Viníciius", "Filosofia - Jânio (Teco)", "História - Flávio", "Artes - Pablo Fabrício", "EduFis - Tâminez"],
+                    "Qua": ["Física - Pedro Marcelo", "Desenho Técnico - ARISTÓFANES", "Informática - LUIZ FELIPE", "Desenho Técnico - ARISTÓFANES", "Informática - LUIZ FELIPE", "Língua Portuguesa - Wilton"],
+                    "Qui": ["Química - JOSE ADONIAS", "Inglês - IZABEL", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "2º Agroecologia": {
+                local: "Bloco B - Sala 5",
+                schedule: {
+                    "Seg": ["MASO - Michelangelo", "Topo.Inst.Rurais - JOSE MADSON", "EduFis - Tâminez", "História - THYAGO RUZEMBERG", "GOST - ANTONIO FRANCELINO", "CURE - FRANCILENE"],
+                    "Ter": ["Sociologia - ENEDINA", "Geografia - Velmani", "Filosofia - LUÍS MÁRCIO", "", "Língua Portuguesa - Letícia", "Língua Portuguesa - Letícia"],
+                    "Qua": ["Química - Willian", "Inglês - Joseane", "Língua Portuguesa - Letícia", "Física - Pedro Marcelo", "Biologia - Claudiana", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "3º Agroecologia": {
+                local: "Bloco B - sala 6",
+                schedule: {
+                    "Seg": ["Espanhol - FLÁVIA KAROLINA", "Sociologia - ENEDINA", "SSA - FABIO JOSE", "CPPA - BRAULIO", "Geografia - GERARDO", "Filosofia - LUÍS MÁRCIO"],
+                    "Ter": ["IrDren - SAMUEL", "Adm.Emp.Ex.Rur. - Alex Nina", "Biologia - Victor Cedro", "FruAgro - FRANCILENE", "História - THYAGO RUZEMBERG", "PAA - Élcio"],
+                    "Qua": ["Língua Portuguesa - HUMBERTO", "Química - JOSE ADONIAS", "MECA - Danielle", "Língua Portuguesa - HUMBERTO", "Língua Portuguesa - HUMBERTO", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "CT - 2º Agroeco": {
+                local: "(aulas Vespertino)",
+                schedule: {
+                    "Seg": ["MAFI - Évio", "OlerAgro - ENIO GOMES", "Matemática - Wyana", "", "", ""],
+                    "Ter": ["", "", "", "", "", ""],
+                    "Qua": ["", "", "", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "CT - 3º Agroeco": {
+                local: "(aulas Vespertino)",
+                schedule: {
+                    "Seg": ["Física - ERILAINE", "Matemática - Marta", "", "", "", ""],
+                    "Ter": ["", "", "", "", "", ""],
+                    "Qua": ["", "", "", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "1º Agroindústria Mat": {
+                local: "Bloco A - Sala 3",
+                schedule: {
+                    "Seg": ["Microbiologia - ROBERTA", "Geografia - Évelyn", "Artes - Pablo", "Filosofia - ALUISIO", "Sociologia - ENEDINA", "Química - RONNY"],
+                    "Ter": ["PTA - Élida", "História - Miguel", "Matemática - Wyana", "Matemática - Wyana", "Física", "Língua Portuguesa - Ana Cecília"],
+                    "Qua": ["Biologia - Victor Cedro", "Empreendedorismo - Alex Nina", "Matemática - Wyana", "Língua Portuguesa - Ana Cecília", "Língua Portuguesa - Ana Cecília", "EduFis - ULISSES"],
+                    "Qui": ["Informática Agroin - LUIZ FELIPE", "Informática Agroin - LUIZ FELIPE", "Desenho Técnico - ELMA", "Desenho Técnico - ELMA", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "2º Agroindústria Mat": {
+                local: "Bloco A - Sala 4",
+                schedule: {
+                    "Seg": ["Tec.Leite - SILVANIA", "Gestão de Resíduos - MARIA CECILIA", "Sociologia - ENEDINA", "Tec.Grãos - RODRIGO", "EduFis - Renata", "Física - Robenilson"],
+                    "Ter": ["Geografia - Évelyn", "História - THYAGO", "Tec.Cana - SIMONE", "Bromatologia - RODRIGO", "Bromatologia - RODRIGO", "Bromatologia - RODRIGO"],
+                    "Qua": ["Filosofia - ALUISIO", "Química - Willian", "Biologia - Claudiana", "Inglês - Derick", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "3º Agroindustria Mat": {
+                local: "Bloco A - Sala 5",
+                schedule: {
+                    "Seg": ["Espanhol - NEILA COELHO", "Tec. Carnes - Wmekson", "Sociologia - ENEDINA", "Tec.Ovo - Élida", "Tec.Ovo - Élida", "GOST - Francelino"],
+                    "Ter": ["Biologia - Victor Cedro", "Geografia - GERARDO", "Filosofia - LUÍS MÁRCIO", "Química - RONNY", "Língua Portuguesa - Wilton", "Inglês - Joseane"],
+                    "Qua": ["Tec. Frutas - ELLEN", "História - THYAGO", "Tec. Bebidas - ELLEN", "Tec. Frutas - ELLEN", "Tec. Frutas - ELLEN", "Tec. Pescado - SIMONE"],
+                    "Qui": ["Língua Portuguesa - Wilton", "Língua Portuguesa - Wilton", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "1º Agropecuária Mat": {
+                local: "Bloco B - Sala 1",
+                schedule: {
+                    "Seg": ["Zootecnia 1 - DENISE", "Artes - Pablo", "Geografia - Évelyn", "Agricultura 1 - KLEYTON", "Química - RONNY", "Biologia - Victor Cedro"],
+                    "Ter": ["Sociologia - ENEDINA", "Zootecnia 1 - DENISE", "História - Miguel", "Matemática - Wyana", "Filosofia - ALUISIO", "Informática Aplicada - LUIZ FELIPE"],
+                    "Qua": ["Língua Portuguesa - Ana Cecília", "Física", "EduFis - ULISSES", "Matemática - Wyana", "Matemática - Wyana", "Língua Portuguesa - Ana Cecília"],
+                    "Qui": ["Língua Portuguesa - Ana Cecília", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "2º Agropecuária Mat": {
+                local: "Bloco B - Sala 2",
+                schedule: {
+                    "Seg": ["Zootecnia 2 - DENISE", "Geotecnologias - JOSE MADSON", "EduFis - Renata", "Sociologia - ENEDINA", "Filosofia - ALUISIO", "Geografia - Évelyn"],
+                    "Ter": ["História - Miguel", "NutriAni - Élcio", "Matemática - Flávio Daniel", "Matemática - Flávio Daniel", "Matemática - Flávio Daniel", "BioRepo1º - Victor Cedro"],
+                    "Qua": ["Agricultura 2 - ALMIR", "Inglês - Joseane", "MECA - Danielle", "Química - JOSE ADONIAS", "Física - Robenilson", "Biologia - Claudiana"],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "3º Agropecuária Mat": {
+                local: "Bloco B - Sala 3",
+                schedule: {
+                    "Seg": ["Sociologia - ENEDINA", "Espanhol - NEILA COELHO", "ProdAgroin - BRAULIO", "IrDren - SAMUEL", "SegTra - Francelino", "Matemática - Enéias Miguel"],
+                    "Ter": ["Filosofia - LUÍS MÁRCIO", "Zoo 3 - RANDERSON", "Língua Portuguesa - Wilton", "Língua Portuguesa - Wilton", "Língua Portuguesa - Wilton", "Biologia - Victor Cedro"],
+                    "Qua": ["Gestão Agropec - Alex Nina", "EReDR - Danielle", "Geografia - GERARDO", "Fruticultura Agropec - ENIO", "Química - JOSE ADONIAS", "Inglês - Joseane"],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "2º P - En. Agronômica": {
+                local: "Bloco A - Sala 6",
+                schedule: {
+                    "Seg": ["Bioquímica - RANDERSON", "Topografia - JOSE MADSON", "Topografia - JOSE MADSON", "Mat 2 - Enéias Miguel", "Botânica - FRANCILENE", "Bioquímica - RANDERSON"],
+                    "Ter": ["Mat 2 - Enéias Miguel", "Química Analítica - Willian", "Física 1 - Ana Carla", "Física 1 - Ana Carla", "Botânica - FRANCILENE", "Zoologia - José Muniz"],
+                    "Qua": ["Física 1 - Ana Carla", "Química Analítica - Willian", "Zoologia - José Muniz", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "6º Período Agronomia": {
+                local: "Sala Centro Xingó",
+                schedule: {
+                    "Seg": ["Fertilidade - Fabiano", "Sementes - FABIO", "Sementes - FABIO", "Sociologia Rural - Viníciius", "Sociologia Rural - Viníciius", "Sociologia Rural - Viníciius"],
+                    "Ter": ["IrDren - SAMUEL", "Fitopatologia II - ALMIR", "Horticultura - Danielle", "IrDren - SAMUEL", "Fitopatologia II - ALMIR", "ZE1 - Élcio"],
+                    "Qua": ["Fertilidade - Fabiano", "Horticultura - Danielle", "ZE1 - Élcio", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "10º P Agronomia": {
+                local: "Sala Centro Xingó",
+                schedule: {
+                    "Seg": ["TCC II - RANDERSON", "TCC II - RANDERSON", "", "", "", ""],
+                    "Ter": ["", "", "", "", "", ""],
+                    "Qua": ["", "", "", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "Eletivas Engenharia Agronômica": {
+                local: "Aula matutino",
+                schedule: {
+                    "Seg": ["Microbiologia - RANDERSON", "Microbiologia - RANDERSON", "Microbiologia - RANDERSON", "Questão Agrária - GERARDO", "Fertirrigação - JOSE MADSON", "Citricultura - ENIO"],
+                    "Ter": ["Citricultura - ENIO", "Citricultura - ENIO", "", "", "", ""],
+                    "Qua": ["", "", "", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "CT - 2º Agroin Vesp": {
+                local: "(aulas Matutino)",
+                schedule: {
+                    "Seg": ["Gestão de Resíduos - MARIA CECILIA", "Bromatologia - RODRIGO", "Tec.Leite - SILVANIA", "", "", ""],
+                    "Ter": ["", "", "", "", "", ""],
+                    "Qua": ["", "", "", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "CT - 3º Agroin Vesp": {
+                local: "(aulas Matutino)",
+                schedule: {
+                    "Seg": ["GOST - Francelino", "Língua Portuguesa - Wilton", "Mate Repo 2 - Wyana", "", "", ""],
+                    "Ter": ["", "", "", "", "", ""],
+                    "Qua": ["", "", "", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "CT - 2º Agropec Vesp": {
+                local: "(aulas Matutino)",
+                schedule: {
+                    "Seg": ["História - Miguel", "Geografia - Évelyn", "Matemática - Enéias Miguel", "Desenho Técnico - ARISTÓFANES", "Sociologia - ENEDINA", ""],
+                    "Ter": ["", "", "", "", "", ""],
+                    "Qua": ["", "", "", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            },
+            "CT - 3º Agropec Vesp": {
+                local: "(aulas Matutino)",
+                schedule: {
+                    "Seg": ["História - THYAGO", "Zoo 3 - RANDERSON", "Fruticultura Agropec - ENIO", "", "", ""],
+                    "Ter": ["", "", "", "", "", ""],
+                    "Qua": ["", "", "", "", "", ""],
+                    "Qui": ["", "", "", "", "", ""],
+                    "Sex": ["", "", "", "", "", ""]
+                }
+            }
+        };
+
+        const timeSlots = ["7:00 - 7:50", "7:50 - 8:40", "8:40 - 9:30", "9:50 - 10:40", "10:40 - 11:30", "11:30 - 12:20"];
+        const days = ["Seg", "Ter", "Qua", "Qui", "Sex"];
+
+        function createTurmaCard(nome, data) {
+            const card = document.createElement('div');
+            card.className = 'turma-card';
+            card.setAttribute('data-turma', nome);
+
+            let tableHTML = `
+                <div class="turma-header">
+                    ${nome} - ${data.local}
+                </div>
+                <table class="horario-table">
+                    <thead>
+                        <tr>
+                            <th>Horário</th>
+                            ${days.map(day => `<th>${day}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            timeSlots.forEach((time, index) => {
+                tableHTML += `<tr>`;
+                tableHTML += `<td class="time-slot">${index + 1}º<br>${time}</td>`;
+                
+                days.forEach(day => {
+                    const aula = data.schedule[day] && data.schedule[day][index] ? data.schedule[day][index] : '';
+                    let aulaHTML = '';
+                    
+                    if (aula && aula.trim()) {
+                        const parts = aula.split(' - ');
+                        if (parts.length >= 2) {
+                            aulaHTML = `
+                                <div class="horario-slot">
+                                    <div class="materia">${parts[0]}</div>
+                                    <div class="professor">${parts[1]}</div>
+                                </div>
+                            `;
+                        } else {
+                            aulaHTML = `<div class="horario-slot"><div class="materia">${aula}</div></div>`;
+                        }
+                    }
+                    
+                    tableHTML += `<td data-day="${day}" data-content="${aula.toLowerCase()}">${aulaHTML}</td>`;
+                });
+                
+                tableHTML += `</tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+            card.innerHTML = tableHTML;
+            return card;
+        }
+
+        function renderTurmas() {
+            const grid = document.getElementById('turmaGrid');
+            const turmaFilter = document.getElementById('turmaFilter');
+            
+            grid.innerHTML = '';
+            turmaFilter.innerHTML = '<option value="">Todas as turmas</option>';
+
+            Object.keys(horarios).forEach(nome => {
+                const option = document.createElement('option');
+                option.value = nome;
+                option.textContent = nome;
+                turmaFilter.appendChild(option);
+
+                const card = createTurmaCard(nome, horarios[nome]);
+                grid.appendChild(card);
+            });
+        }
+
+        function filterTurmas() {
+            const turmaFilter = document.getElementById('turmaFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const dayFilter = document.getElementById('diaFilter').value;
+
+            document.querySelectorAll('.turma-card').forEach(card => {
+                const turmaNome = card.getAttribute('data-turma');
+                let showCard = true;
+
+                // Filtro por turma
+                if (turmaFilter && turmaNome !== turmaFilter) {
+                    showCard = false;
+                }
+
+                // Filtro por busca
+                const cells = card.querySelectorAll('td[data-content]');
+                let hasMatch = false;
+                
+                cells.forEach(cell => {
+                    cell.classList.remove('search-highlight');
+                    if (searchTerm && cell.getAttribute('data-content').includes(searchTerm)) {
+                        hasMatch = true;
+                        cell.classList.add('search-highlight');
+                    }
+                });
+
+                if (searchTerm && !hasMatch) {
+                    showCard = false;
+                }
+
+                // Filtro por dia
+                if (dayFilter) {
+                    const dayCells = card.querySelectorAll(`td[data-day="${dayFilter}"]`);
+                    let hasDayContent = false;
+                    dayCells.forEach(cell => {
+                        if (cell.getAttribute('data-content').trim()) {
+                            hasDayContent = true;
+                        }
+                    });
+                    if (!hasDayContent) {
+                        showCard = false;
+                    }
+                }
+
+                card.style.display = showCard ? 'block' : 'none';
+            });
+        }
+
+        // Event listeners
+        document.getElementById('turmaFilter').addEventListener('change', filterTurmas);
+        document.getElementById('searchInput').addEventListener('input', filterTurmas);
+        document.getElementById('diaFilter').addEventListener('change', filterTurmas);
+
+        // Inicializar
+        renderTurmas();
+    </script>
+</body>
+</html>
